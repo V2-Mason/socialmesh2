@@ -1,19 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { PrismaRepository } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
+import { PrismaService } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 
 @Injectable()
 export class PostSchedulerService {
   private readonly logger = new Logger(PostSchedulerService.name);
 
-  constructor(private _prisma: PrismaRepository) {}
+  constructor(private _prisma: PrismaService) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
   async checkScheduledPosts() {
     const now = new Date();
 
     // Find posts that are due for publishing
-    const duePosts = await this._prisma.model.post.findMany({
+    const duePosts = await this._prisma.post.findMany({
       where: {
         state: 'QUEUE',
         publishDate: { lte: now },
@@ -46,13 +46,13 @@ export class PostSchedulerService {
         }
 
         // Mark as PENDING_PUBLISH
-        await this._prisma.model.post.update({
+        await this._prisma.post.update({
           where: { id: post.id },
           data: { state: 'PENDING_PUBLISH' },
         });
 
         // Also mark child posts (comments/threads)
-        await this._prisma.model.post.updateMany({
+        await this._prisma.post.updateMany({
           where: { parentPostId: post.id },
           data: { state: 'PENDING_PUBLISH' },
         });
