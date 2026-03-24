@@ -1,0 +1,15 @@
+social.mattera3dprint.com {
+	handle /privacy* {
+		root * /srv/static
+		rewrite * /privacy.html
+		file_server
+	}
+	handle /terms* {
+		root * /srv/static
+		rewrite * /terms.html
+		file_server
+	}
+	handle {
+		reverse_proxy socialmesh2:5000
+	}
+}

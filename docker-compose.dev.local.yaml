@@ -1,0 +1,83 @@
+# SocialMesh2 dev infrastructure
+# App runs on host via pnpm, this only starts supporting services
+# Reuses existing postiz-postgres and postiz-redis from production
+
+services:
+  temporal-elasticsearch:
+    container_name: sm2-temporal-elasticsearch
+    image: elasticsearch:7.17.27
+    restart: always
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+    networks:
+      - temporal-network
+    expose:
+      - 9200
+    volumes:
+      - sm2-temporal-es-data:/usr/share/elasticsearch/data
+
+  temporal-postgresql:
+    container_name: sm2-temporal-postgresql
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_USER: temporal
+    networks:
+      - temporal-network
+    expose:
+      - 5432
+    volumes:
+      - sm2-temporal-postgres-volume:/var/lib/postgresql/data
+
+  temporal:
+    container_name: sm2-temporal
+    image: temporalio/auto-setup:1.28.1
+    restart: always
+    depends_on:
+      - temporal-postgresql
+      - temporal-elasticsearch
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=sm2-temporal-postgresql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+      - ENABLE_ES=true
+      - ES_SEEDS=sm2-temporal-elasticsearch
+      - ES_VERSION=v7
+      - TEMPORAL_NAMESPACE=default
+    networks:
+      - temporal-network
+    ports:
+      - "127.0.0.1:7234:7233"
+    volumes:
+      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+
+  temporal-ui:
+    container_name: sm2-temporal-ui
+    image: temporalio/ui:2.34.0
+    restart: always
+    environment:
+      - TEMPORAL_ADDRESS=sm2-temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://127.0.0.1:4200
+    networks:
+      - temporal-network
+    ports:
+      - "127.0.0.1:8083:8080"
+
+volumes:
+  sm2-temporal-es-data:
+  sm2-temporal-postgres-volume:
+
+networks:
+  temporal-network:
+    driver: bridge
+    name: sm2-temporal-network

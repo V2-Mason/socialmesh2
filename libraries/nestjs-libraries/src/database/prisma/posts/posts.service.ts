@@ -936,4 +936,31 @@ export class PostsService {
   ) {
     return this._postRepository.createComment(orgId, userId, postId, comment);
   }
+
+  async getCoworkQueue() {
+    return this._postRepository.getCoworkQueue();
+  }
+
+  async processCoworkResult(result: {
+    postId: string;
+    status: 'success' | 'error';
+    releaseURL?: string;
+    platformPostId?: string;
+    error?: string;
+    screenshotPath?: string;
+  }) {
+    if (result.status === 'success') {
+      return this._postRepository.updatePost(
+        result.postId,
+        result.platformPostId || 'cowork',
+        result.releaseURL || ''
+      );
+    } else {
+      return this._postRepository.changeState(
+        result.postId,
+        'ERROR',
+        result.error || 'CoWork publishing failed'
+      );
+    }
+  }
 }

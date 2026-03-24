@@ -876,4 +876,26 @@ export class PostsRepository {
       },
     });
   }
+
+  async getCoworkQueue() {
+    return this._post.model.post.findMany({
+      where: {
+        state: 'PENDING_PUBLISH',
+      },
+      include: {
+        integration: {
+          select: {
+            id: true,
+            name: true,
+            providerIdentifier: true,
+            picture: true,
+            profile: true,
+          },
+        },
+      },
+      orderBy: {
+        publishDate: 'asc',
+      },
+    });
+  }
 }

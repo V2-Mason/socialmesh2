@@ -900,6 +900,8 @@ enum From {
 
 enum State {
   QUEUE
+  PENDING_PUBLISH
+  PUBLISHING
   PUBLISHED
   ERROR
   DRAFT

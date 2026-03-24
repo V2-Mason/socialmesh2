@@ -245,6 +245,25 @@ export class PostActivity {
   }
 
   @ActivityMethod()
+  async notifyCowork(
+    orgId: string,
+    postId: string,
+    platform: string,
+    postCount: number
+  ) {
+    const webhookUrl = process.env.COWORK_DISCORD_WEBHOOK;
+    if (!webhookUrl) return;
+
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: `📤 **CoWork 发布任务**\n平台: ${platform}\n帖子数: ${postCount}\n组织: ${orgId}\n帖子ID: ${postId}\n\n请 CoWork 执行发布。`,
+      }),
+    });
+  }
+
+  @ActivityMethod()
   async internalPlugs(integration: Integration, settings: any) {
     return this._postService.checkInternalPlug(
       integration,
