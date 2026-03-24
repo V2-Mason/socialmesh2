@@ -1,7 +1,7 @@
 # SocialMesh2 Production — lightweight (no Temporal)
 services:
   socialmesh2:
-    image: ghcr.io/v2-mason/socialmesh2:latest
+    image: ghcr.io/v2-mason/socialmesh2:latest  # lowercase required for GHCR
     container_name: socialmesh2
     restart: always
     environment:
