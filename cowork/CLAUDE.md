@@ -61,7 +61,8 @@ Vault（记忆）：C:\Users\hangn\vault\
 2. 如果有新经验/教训 → 追加到 `C:\Users\hangn\vault\learnings\` 对应文件
 3. 追加当日记录到 `C:\Users\hangn\vault\daily\YYYY-MM-DD.md`
 4. git commit + push（vault 和 socialmesh2 两个 repo 都要）
-5. 告诉 Mason 接头暗号
+5. 输出接头暗号，格式固定为：
+   > 下次说："继续 SocialMesh2，上次做到 [具体完成了什么]，下一步 [最优先的待办]"
 
 ## 记忆体系（与 Obsidian vault 对齐）
 
