@@ -1,9 +1,7 @@
-# SocialMesh2 Production — built from source
+# SocialMesh2 Production — lightweight (no Temporal)
 services:
   socialmesh2:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    image: ghcr.io/v2-mason/socialmesh2:latest
     container_name: socialmesh2
     restart: always
     environment:
@@ -14,7 +12,7 @@ services:
       DATABASE_URL: "postgresql://postiz-user:postiz-password@sm2-postgres:5432/postiz-db-local"
       REDIS_URL: "redis://sm2-redis:6379"
       BACKEND_INTERNAL_URL: "http://localhost:3000"
-      TEMPORAL_ADDRESS: "sm2-temporal:7233"
+      TEMPORAL_DISABLED: "true"
       IS_GENERAL: "true"
       DISABLE_REGISTRATION: "true"
       STORAGE_PROVIDER: "local"
@@ -24,6 +22,8 @@ services:
       FACEBOOK_APP_SECRET: "e90750392b6bdf5ae3b5cc08f7d430a2"
       TIKTOK_CLIENT_ID: "sbawbe9sjra3s298en"
       TIKTOK_CLIENT_SECRET: "87R5z6UgrE4yYOa0um0dMftCmcnI4yWj"
+      COWORK_DISCORD_WEBHOOK: "${COWORK_DISCORD_WEBHOOK:-}"
+      COWORK_API_KEY: "${COWORK_API_KEY:-}"
       OPENAI_API_KEY: ""
       API_LIMIT: 30
       NX_ADD_PLUGINS: false
@@ -34,7 +34,6 @@ services:
       - "127.0.0.1:4007:5000"
     networks:
       - sm2-network
-      - sm2-temporal-network
     depends_on:
       sm2-postgres:
         condition: service_healthy
@@ -73,76 +72,6 @@ services:
     networks:
       - sm2-network
 
-  sm2-temporal-elasticsearch:
-    container_name: sm2-temporal-elasticsearch
-    image: elasticsearch:7.17.27
-    restart: always
-    environment:
-      - cluster.routing.allocation.disk.threshold_enabled=true
-      - cluster.routing.allocation.disk.watermark.low=512mb
-      - cluster.routing.allocation.disk.watermark.high=256mb
-      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms256m -Xmx256m
-      - xpack.security.enabled=false
-    networks:
-      - sm2-temporal-network
-    expose:
-      - 9200
-    volumes:
-      - postiz_temporal-es-data:/usr/share/elasticsearch/data
-
-  sm2-temporal-postgresql:
-    container_name: sm2-temporal-postgresql
-    image: postgres:16
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: temporal
-      POSTGRES_USER: temporal
-    networks:
-      - sm2-temporal-network
-    expose:
-      - 5432
-    volumes:
-      - postiz_temporal-postgres-volume:/var/lib/postgresql/data
-
-  sm2-temporal:
-    container_name: sm2-temporal
-    image: temporalio/auto-setup:1.28.1
-    restart: always
-    depends_on:
-      - sm2-temporal-postgresql
-      - sm2-temporal-elasticsearch
-    environment:
-      - DB=postgres12
-      - DB_PORT=5432
-      - POSTGRES_USER=temporal
-      - POSTGRES_PWD=temporal
-      - POSTGRES_SEEDS=sm2-temporal-postgresql
-      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
-      - ENABLE_ES=true
-      - ES_SEEDS=sm2-temporal-elasticsearch
-      - ES_VERSION=v7
-      - TEMPORAL_NAMESPACE=default
-    networks:
-      - sm2-temporal-network
-    expose:
-      - 7233
-    volumes:
-      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
-
-  sm2-temporal-ui:
-    container_name: sm2-temporal-ui
-    image: temporalio/ui:2.34.0
-    restart: always
-    environment:
-      - TEMPORAL_ADDRESS=sm2-temporal:7233
-      - TEMPORAL_CORS_ORIGINS=http://127.0.0.1:4007
-    networks:
-      - sm2-temporal-network
-    ports:
-      - "127.0.0.1:8082:8080"
-
   caddy:
     image: caddy:2-alpine
     container_name: caddy
@@ -167,10 +96,6 @@ volumes:
     external: true
   postiz_postiz-redis-data:
     external: true
-  postiz_temporal-es-data:
-    external: true
-  postiz_temporal-postgres-volume:
-    external: true
   postiz_caddy-data:
     external: true
   postiz_caddy-config:
@@ -178,6 +103,3 @@ volumes:
 
 networks:
   sm2-network:
-  sm2-temporal-network:
-    driver: bridge
-    name: sm2-temporal-network
