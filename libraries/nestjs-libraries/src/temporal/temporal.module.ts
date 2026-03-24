@@ -1,11 +1,59 @@
-import { TemporalModule } from 'nestjs-temporal-core';
+import { DynamicModule, Global, Module } from '@nestjs/common';
+import { TemporalModule, TemporalService } from 'nestjs-temporal-core';
 import { socialIntegrationList } from '@gitroom/nestjs-libraries/integrations/integration.manager';
+
+export const isTemporalDisabled = () =>
+  process.env.TEMPORAL_DISABLED === 'true';
+
+/**
+ * Mock client that no-ops all Temporal calls when Temporal is disabled.
+ */
+const mockRawClient = {
+  workflow: {
+    list: () => ({
+      [Symbol.asyncIterator]: () => ({
+        next: async () => ({ done: true, value: undefined }),
+      }),
+    }),
+    start: async () => ({}),
+  },
+};
+
+const mockClient = {
+  getRawClient: () => mockRawClient,
+  getWorkflowHandle: async () => ({
+    describe: async () => ({ status: { name: 'TERMINATED' } }),
+    terminate: async () => {},
+  }),
+};
+
+@Global()
+@Module({})
+export class TemporalDisabledModule {
+  static register(): DynamicModule {
+    return {
+      module: TemporalDisabledModule,
+      global: true,
+      providers: [
+        {
+          provide: TemporalService,
+          useValue: { client: mockClient },
+        },
+      ],
+      exports: [TemporalService],
+    };
+  }
+}
 
 export const getTemporalModule = (
   isWorkers: boolean,
   path?: string,
   activityClasses?: any[]
 ) => {
+  if (isTemporalDisabled()) {
+    return TemporalDisabledModule.register();
+  }
+
   return TemporalModule.register({
     isGlobal: true,
     connection: {
