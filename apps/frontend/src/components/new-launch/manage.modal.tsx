@@ -203,6 +203,8 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
       if (
         (type === 'now' || type === 'schedule') &&
         (existingData?.posts?.[0]?.state === 'PUBLISHED' ||
+          existingData?.posts?.[0]?.state === 'PENDING_PUBLISH' ||
+          existingData?.posts?.[0]?.state === 'PUBLISHING' ||
           (existingData?.posts?.[0]?.state === 'QUEUE' &&
             dayjs().isAfter(date.utc())))
       ) {

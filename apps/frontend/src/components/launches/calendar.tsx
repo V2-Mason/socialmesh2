@@ -1094,6 +1094,9 @@ const CalendarItem: FC<{
         <div className="w-full flex-1 flex flex-col min-h-[40px]">
           <div className="text-start">
             {state === 'DRAFT' ? t('draft', 'Draft') + ': ' : ''}
+            {state === 'PENDING_PUBLISH' ? '⏳ Pending: ' : ''}
+            {state === 'PUBLISHING' ? '🔄 Publishing: ' : ''}
+            {state === 'ERROR' ? '❌ Error: ' : ''}
           </div>
             <div className="w-full relative">
               <div className="absolute top-0 start-0 w-full text-ellipsis break-words line-clamp-1 text-start">
