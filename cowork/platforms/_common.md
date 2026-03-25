@@ -41,19 +41,13 @@ const res = await fetch('https://social.mattera3dprint.com/api/cowork/queue', ..
 
 ```javascript
 (async () => {
-  // === 1. 准备文件 ===
-  // 图片：Canvas 生成（临时方案）
-  const canvas = document.createElement('canvas');
-  canvas.width = 1080; canvas.height = 1080;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#FF6B35';
-  ctx.fillRect(0, 0, 1080, 1080);
-  const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-  const file = new File([blob], 'image.png', { type: 'image/png', lastModified: Date.now() });
-
-  // 真实图片（需 CORS）：
-  // const blob = await fetch('https://social.mattera3dprint.com/static/xxx.png').then(r => r.blob());
-  // const file = new File([blob], 'image.png', { type: 'image/png', lastModified: Date.now() });
+  // === 1. 下载真实图片/视频 ===
+  // CORS 已配置，可直接 fetch Postiz 静态资源
+  const imageUrl = '<POST_IMAGE_URL>';  // 从 queue 返回的 post.image 数组中取
+  const blob = await fetch(imageUrl).then(r => r.blob());
+  const ext = imageUrl.split('.').pop();
+  const mime = ext === 'mp4' ? 'video/mp4' : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+  const file = new File([blob], `post-media.${ext}`, { type: mime, lastModified: Date.now() });
 
   // === 2. 设置双保险拦截 ===
   let injected = false;
@@ -121,15 +115,10 @@ const res = await fetch('https://social.mattera3dprint.com/api/cowork/queue', ..
 | 合成 DragEvent | 浏览器安全机制阻止 dataTransfer 携带文件 |
 | 跨域 fetch（无 CORS） | MBS/TikTok 域无法 fetch Postiz 静态资源 |
 
-### 解锁真实图片的路径
+### 真实图片已解锁（2026-03-25）
 
-给 Postiz 的 nginx 加 CORS header：
-```nginx
-location /static/ {
-    add_header Access-Control-Allow-Origin "*";
-}
-```
-加完后，把 Canvas 部分替换为 `fetch(imageUrl).then(r => r.blob())` 即可。
+Caddy 已配置 `Access-Control-Allow-Origin: *`，`/static/*` 下的文件可跨域 fetch。
+直接用 `fetch(imageUrl).then(r => r.blob())` 获取真实图片。
 
 ## Chrome 工具操作速查
 

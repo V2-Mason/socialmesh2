@@ -37,24 +37,21 @@
    - "Text" 输入框
    - "Publish" 按钮
 
-## 第三步：上传图片（Canvas Blob 注入法）
+## 第三步：上传图片（Blob 注入法）
 
-> 当前尚未解决跨域真实图片传递。待 Postiz 静态资源加 CORS header 后，
-> 把 Canvas 部分替换为 `fetch(imageUrl).then(r => r.blob())` 即可。
+> CORS 已配置（2026-03-25），可直接 fetch Postiz 静态资源的真实图片。
 
-在 MBS tab 执行以下 JS（一次完成拦截 + 注入 + 触发）：
+在 MBS tab 执行以下 JS（一次完成下载 + 拦截 + 注入 + 触发）：
 
 ```javascript
 (async () => {
-  // === 1. 创建图片 ===
-  const canvas = document.createElement('canvas');
-  canvas.width = 1080; canvas.height = 1080;
-  const ctx = canvas.getContext('2d');
-  // 替换为真实图片时：const blob = await fetch(url).then(r=>r.blob());
-  ctx.fillStyle = '#FF6B35';
-  ctx.fillRect(0, 0, 1080, 1080);
-  const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-  const file = new File([blob], 'post-image.png', { type: 'image/png', lastModified: Date.now() });
+  // === 1. 下载真实图片 ===
+  // imageUrl 从 queue 返回的 post.image 数组中取
+  const imageUrl = '<POST_IMAGE_URL>';  // 例如 https://social.mattera3dprint.com/static/xxx.png
+  const blob = await fetch(imageUrl).then(r => r.blob());
+  const ext = imageUrl.split('.').pop();
+  const mime = ext === 'mp4' ? 'video/mp4' : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+  const file = new File([blob], `post-media.${ext}`, { type: mime, lastModified: Date.now() });
 
   // === 2. 拦截 file input ===
   let injected = false;
@@ -156,7 +153,7 @@
 
 | 问题 | 状态 | 备注 |
 |------|------|------|
-| 跨域图片传递 | 未解决 | 需 Postiz nginx 加 `Access-Control-Allow-Origin: *` |
+| 跨域图片传递 | ✅ 已解决 | Caddy 已加 CORS header（2026-03-25） |
 | file_upload 工具 | 不可用 | Downloads 路径被安全策略拦截 |
 | Base64 数据传递 | 不可用 | 系统拦截 "[BLOCKED]" |
 | 大图片数组传递 | 不可用 | 超出返回长度限制被截断 |
