@@ -17,7 +17,8 @@ Obsidian vault      → 所有项目的外脑中枢（唯一记忆源）
 
 - Postiz 地址：https://social.mattera3dprint.com
 - Postiz API：https://social.mattera3dprint.com/api
-- CoWork API Key：从 Mason 获取（不要硬编码在文件里）
+- CoWork API Key：读取本目录下 `.env.local` 文件中的 `COWORK_API_KEY`
+  - 如果 .env.local 不存在，提醒 Mason 从 .env.local.example 复制并填入
 
 ## 本地路径
 
@@ -29,10 +30,14 @@ Vault（记忆）：C:\Users\hangn\vault\
 ## 工作流程
 
 ### 启动时
-1. `git pull` 两个 repo（socialmesh2 和 vault）获取最新
-2. 读本目录下的 README.md 和 config.md 了解 API 和工作流
-3. 读 vault 的项目状态：`C:\Users\hangn\vault\_claude\session\socialmesh2.md`
-4. 告诉 Mason：上次做到哪，下一步是什么
+1. 读 `.env.local` 获取 API Key（没有就提醒 Mason 创建）
+2. `git pull` 两个 repo（socialmesh2 和 vault）获取最新
+3. 读本目录下的 config.md 了解 API 端点
+4. 读 vault 的项目状态：`C:\Users\hangn\vault\_claude\session\socialmesh2.md`
+5. **立即检查发布队列**：`GET /api/cowork/queue`
+   - 有待发布内容 → 告诉 Mason 并询问是否立即发布
+   - 队列为空 → 告诉 Mason "没有待发布内容"
+6. 告诉 Mason：上次做到哪，queue 状态，下一步是什么
 
 ### 发布流程
 1. 收到 Discord 通知（或 Mason 指令）

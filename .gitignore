@@ -5,6 +5,8 @@ dist
 tmp
 /out-tsc
 .env
+.env.local
+cowork/.env.local
 # dependencies
 node_modules
 
