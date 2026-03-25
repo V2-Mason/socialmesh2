@@ -1,46 +1,57 @@
-# TikTok Business Center 发布指南
+# TikTok Business Center 发布 SOP
 
-## 统一入口
-**通过 TikTok Business Center 操作，不要打开 tiktok.com**
-- URL：`https://business.tiktok.com`
+> 部分步骤已验证（2026-03-25），Publisher 入口确认存在但需要 Business Account 验证。
 
-## 适用 providerIdentifier
-- `tiktok`
+## 基本规则
+- **入口**：`https://business.tiktok.com`，绝不打开 tiktok.com
+- **适用 providerIdentifier**：`tiktok`
+- **前置条件**：Business Account 必须已通过验证（Verify Business Account）
 
-## 发布流程
+## 第一步：标记 PUBLISHING
 
-### 视频帖子（主要）
-1. 打开 `https://business.tiktok.com`
-2. 确认已选中正确的 Business Account
-3. 进入 **"Content"** → **"Create"**
-4. 上传视频文件
-5. 等待上传完成（进度条 100%）
-6. 填写标题/描述（`content`，纯文本）
-7. 如果 `settings` 中有 hashtags → 输入 # 触发标签选择
-8. 设置封面（如有指定）
-9. 隐私设置：默认"所有人"
-10. 点击"发布"
-11. 等待发布成功
-12. 获取视频 URL 作为 `releaseURL`
+同 Meta SOP，在 Postiz tab 执行 fetch POST `/api/cowork/publishing`。
 
-### 图文帖子
-1. 同上入口，切换到"照片模式"（如可用）
-2. 上传图片 → 填写描述 → 发布
+## 第二步：导航到 Publisher
 
-## 图片/视频处理
-- 帖子 `image` 字段包含媒体 URL
-- CoWork 需要下载到本地或直接用 URL 上传
+1. `navigate` → `https://business.tiktok.com/manage/business-suite/content-management?org_id=7605859094808821776`
+   - 直接用完整 URL，跳过首页 "Go to Business Center" → 选择账户的步骤
+2. `wait` 3 秒
+3. `read_page` 确认看到左侧导航 "Posts" 区域
+4. 如果当前不在 Publisher 页面 → `left_click` 左侧 "Publisher"
+5. 确认页面标题为 **"Post management"** 且已选中正确的 TikTok 账号（"Mattera 3D Print"）
 
-## 限制
-- 视频：最长 10 分钟
-- 描述：2200 字符
-- 上传大视频需等待处理完成再发布
+### 如果看到 "Verify your Business Account"
+→ 无法继续发布，回写 error 到 Postiz，提示 Mason 手动验证。
 
-## API 调用方式
-**用 Chrome JS fetch，不要用 curl：**
-```javascript
-const res = await fetch('https://social.mattera3dprint.com/api/cowork/queue', {
-  headers: { 'x-cowork-key': '<从 .env.local 读取>' }
-});
-const posts = await res.json();
-```
+## 第三步：上传视频
+
+> ⚠️ 此步骤尚未实际验证，待 Business Account 验证完成后测试。
+
+预期流程：
+1. 找到 "Create" 或 "Upload" 按钮
+2. 视频上传可能需要 file input 注入（同 Meta 的 Canvas Blob 方法，但传 video/mp4）
+3. 等待上传 + 处理完成
+
+## 第四步：填写文案
+
+1. 填写描述（content 纯文本）
+2. 添加 hashtags（TikTok hashtag 影响分发，必须加）
+3. 隐私设置：默认"所有人"
+
+## 第五步：发布 + 回写
+
+同 Meta SOP，发布后获取 URL，fetch POST `/api/cowork/result`。
+
+## 导航速查
+
+| 页面 | 直达 URL |
+|------|----------|
+| Business Center 首页 | `https://business.tiktok.com/manage/users/members?org_id=7605859094808821776` |
+| Publisher（发帖） | `https://business.tiktok.com/manage/business-suite/content-management?org_id=7605859094808821776` |
+
+## 当前阻塞项
+
+| 问题 | 状态 | 解决方案 |
+|------|------|----------|
+| Business Account 未验证 | ❌ 阻塞 | Mason 手动在 Publisher 页面点 "Verify now" |
+| 视频上传方法 | 未测试 | 待验证后补充 SOP |
