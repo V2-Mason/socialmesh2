@@ -13,6 +13,16 @@ import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/in
 
 const ORG_ID = 'c980d2ea-c536-48f8-b23e-9fa837ce3b5e';
 
+const DEFAULT_SETTINGS: Record<string, any> = {
+  instagram: { __type: 'instagram', post_type: 'post' },
+  facebook: { __type: 'facebook' },
+  tiktok: { __type: 'tiktok', privacy_level: 'PUBLIC_TO_EVERYONE' },
+  youtube: { __type: 'youtube' },
+  linkedin: { __type: 'linkedin' },
+  x: { __type: 'x' },
+  gmb: { __type: 'gmb' },
+};
+
 @ApiTags('MasHub')
 @Controller('/mashub')
 export class MashubController {
@@ -56,23 +66,30 @@ export class MashubController {
     const groupId = `mashub-${Date.now()}`;
     const publishDate = body.date || new Date(Date.now() + 86400000).toISOString();
 
+    // Resolve providerIdentifier for each integration to set default settings
+    const integrations = await this._integrationService.getIntegrationsList(ORG_ID);
+    const integrationMap = new Map(integrations.map((i: any) => [i.id, i.providerIdentifier]));
+
     const createPostDto = {
       type: 'draft' as const,
       date: publishDate,
       shortLink: false,
       inter: undefined,
       tags: [],
-      posts: body.posts.map((p) => ({
-        integration: { id: p.integrationId },
-        value: [
-          {
-            content: p.content.startsWith('<') ? p.content : `<p>${p.content}</p>`,
-            image: (p.image || []).map((url) => ({ id: '', path: url })),
-          },
-        ],
-        group: groupId,
-        settings: {},
-      })),
+      posts: body.posts.map((p) => {
+        const provider = integrationMap.get(p.integrationId) || '';
+        return {
+          integration: { id: p.integrationId },
+          value: [
+            {
+              content: p.content.startsWith('<') ? p.content : `<p>${p.content}</p>`,
+              image: (p.image || []).map((url: string) => ({ id: '', path: url })),
+            },
+          ],
+          group: groupId,
+          settings: DEFAULT_SETTINGS[provider] || {},
+        };
+      }),
     };
 
     const mapped = await this._postsService.mapTypeToPost(
