@@ -80,9 +80,9 @@ Vault（记忆）：C:\Users\hangn\vault\
 | 小红书 | 种草、真实感 | 重要 | 图文为主，标题要吸引 |
 
 ### 收工时
-1. 更新 vault session 文件：`C:\Users\hangn\vault\_claude\session\socialmesh2.md`
-   - 追加本次做了什么到"当前状态"部分
-   - 更新"下一步"
+1. 更新 CoWork 专属 session 文件：`C:\Users\hangn\vault\_claude\session\socialmesh2-cowork.md`
+   - 追加本次执行记录（发布了什么、遇到什么问题、操作经验）
+   - **不要写 socialmesh2.md**，那是 GCP Claude Code 独占的
 2. 如果有新经验/教训 → 追加到 `C:\Users\hangn\vault\learnings\` 对应文件
 3. 追加当日记录到 `C:\Users\hangn\vault\daily\YYYY-MM-DD.md`
 4. git commit + push（vault 和 socialmesh2 两个 repo 都要）
@@ -95,12 +95,18 @@ CoWork 的记忆不是独立的，而是 vault 的一部分：
 
 ```
 vault/
-├── _claude/session/socialmesh2.md   ← 项目状态（GCP 和 CoWork 共读共写）
-├── projects/socialmesh/             ← 策略、复盘、决策历史
-├── learnings/                       ← 经验教训（只追加，不删除）
-├── daily/                           ← 每日工作记录
-└── _maps/map-content-ops.md         ← 内容运营知识地图
+├── _claude/session/socialmesh2.md          ← GCP 独占写入（架构/决策/计划），CoWork 只读
+├── _claude/session/socialmesh2-cowork.md   ← CoWork 独占写入（执行日志/发布记录/Chrome经验）
+├── projects/socialmesh/                    ← 策略、复盘、决策历史
+├── learnings/                              ← 经验教训（两边都可写，用不同文件名）
+├── daily/                                  ← 每日工作记录（两边都可追加，用不同时间戳）
+└── _maps/map-content-ops.md                ← 内容运营知识地图
 ```
+
+**防冲突规则：**
+- CoWork **不写** socialmesh2.md（GCP 独占）
+- GCP **不写** socialmesh2-cowork.md（CoWork 独占）
+- learnings/ 和 daily/ 各自新建不同文件名或追加不同段落
 
 **写入规则（与 GCP 侧一致）：**
 - `learnings/` → 只追加，不改已有内容
