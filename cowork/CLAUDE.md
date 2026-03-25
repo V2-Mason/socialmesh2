@@ -40,14 +40,34 @@ Vault（记忆）：C:\Users\hangn\vault\
 6. 告诉 Mason：上次做到哪，queue 状态，下一步是什么
 
 ### 发布流程
-1. 收到 Discord 通知（或 Mason 指令）
-2. `GET /api/cowork/queue` 拉取待发布内容
+1. 启动时自动检查 queue（或 Mason 指令触发）
+2. **用 Chrome JS fetch 调 API**（不要用 curl/WebFetch，会被 proxy 拦截）：
+   ```javascript
+   // 在 Chrome 任意页面 console 执行
+   const res = await fetch('https://social.mattera3dprint.com/api/cowork/queue', {
+     headers: { 'x-cowork-key': '<从 .env.local 读取>' }
+   });
+   const posts = await res.json();
+   ```
 3. 对每条帖子：
-   - `POST /api/cowork/publishing` 标记开始
+   - Chrome fetch `POST /api/cowork/publishing` 标记开始
    - 读取核心内容 → **按目标平台改写**（调性、hashtag、格式）
-   - Chrome 打开平台 → 执行发布
-   - `POST /api/cowork/result` 回写结果
+   - **打开对应的平台管理中心**（不是独立平台网站）→ 执行发布
+   - Chrome fetch `POST /api/cowork/result` 回写结果
 4. 详细操作见 `platforms/` 目录下各平台手册
+
+### 平台管理中心入口（必须遵守）
+| providerIdentifier | 管理中心 | URL |
+|---|---|---|
+| facebook / instagram | Meta Business Suite | business.facebook.com |
+| tiktok | TikTok Business Center | business.tiktok.com |
+| youtube | YouTube Studio | studio.youtube.com |
+| gmb | Google Business Profile | business.google.com |
+| linkedin | LinkedIn | linkedin.com |
+| x | X | x.com |
+| xiaohongshu | 小红书创作服务平台 | creator.xiaohongshu.com |
+
+**绝对不要打开 instagram.com / tiktok.com / facebook.com 去发帖。**
 
 ### 内容改写规则
 同一条核心内容发到不同平台时，自动适配：
