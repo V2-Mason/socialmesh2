@@ -11,7 +11,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.service';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
 
-const ORG_ID = 'c980d2ea-c536-48f8-b23e-9fa837ce3b5e';
+const ORG_ID = process.env.MASHUB_ORG_ID || 'c980d2ea-c536-48f8-b23e-9fa837ce3b5e';
 
 const DEFAULT_SETTINGS: Record<string, any> = {
   instagram: { __type: 'instagram', post_type: 'post' },

@@ -1,0 +1,36 @@
+services:
+  postiz-postgres:
+    image: postgres:17-alpine
+    container_name: postiz-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: postiz-password
+      POSTGRES_USER: postiz-user
+      POSTGRES_DB: postiz-db-local
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-dev-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U postiz-user -d postiz-db-local
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  postiz-redis:
+    image: redis:7.2
+    container_name: postiz-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: redis-cli ping
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - redis-dev-volume:/data
+
+volumes:
+  postgres-dev-volume:
+  redis-dev-volume:

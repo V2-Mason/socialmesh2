@@ -16,6 +16,7 @@ const mockRawClient = {
       }),
     }),
     start: async () => ({}),
+    signalWithStart: async () => ({}),
   },
 };
 
@@ -25,6 +26,7 @@ const mockClient = {
     describe: async () => ({ status: { name: 'TERMINATED' } }),
     terminate: async () => {},
   }),
+  terminateWorkflow: async () => {},
 };
 
 @Global()
